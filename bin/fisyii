@@ -1,0 +1,3 @@
+#!/usr/bin/env node
+
+require('../fis-yii.js').cli.run( process.argv);

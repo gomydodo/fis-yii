@@ -1,0 +1,21 @@
+{
+  "name": "fisyii",
+  "version": "1.0.1",
+  "description": "",
+  "main": "fis-yii.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "bin": {
+    "fisyii": "bin/fisyii",
+    "fis-yii": "bin/fisyii"
+  },
+  "dependencies": {
+    "fis": "^1.8.6",
+    "fis-lint-jshint": "0.0.9",
+    "fis-parser-sass": "^0.2.1",
+    "fis-postprocessor-require-async": "0.0.8"
+  }
+}
