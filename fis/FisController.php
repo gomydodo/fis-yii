@@ -136,8 +136,8 @@ class FisLoader{
 		}
 
 		foreach($nodeColl as $id){
-			$type = $map->getType($id);
-			$uri = $map->getUri($id);
+			$type = $map->getType($id) ?: $map->getPkgType($id);
+			$uri = $map->getUri($id) ?: $map->getPkgUri($id);
 			if($type === 'js')
 				$this->_m['resoureJs'][] = $uri;
 			if($type === 'css')
@@ -163,10 +163,18 @@ class FisLoader{
 			}
 
 			if(! in_array($id, $depends)){
+
+				if(($pkg = $map->getPkg($id)) !== false){
+					$depends = $map->getPkgMembers($pkg) ? 
+							array_merge($depends, $map->getPkgMembers($pkg)) : $depends;
+					$dps = $map->getPkgDeps($pkg);
+					$id = $pkg;
+				}
+
 				$depends[] = $id;
 				$nodeColl->add(new Node($id));
 
-				if(($dps = $this->getMap()->getDepends($id)) !== false){
+				if(! isset($dps) && ($dps = $this->getMap()->getDepends($id)) !== false){
 					foreach($dps as $dp){
 						array_push($_stack, $dp);
 						$nodeColl->add(new Node($dp), $id);
@@ -391,6 +399,10 @@ class Map{
 
 	public function getPkgType($pkg){
 		return isset($this->pkg[$pkg]['type']) ? $this->pkg[$pkg]['type'] : false;
+	}
+
+	public function getPkgDeps($pkg){
+		return isset($this->pkg[$pkg]['deps']) ? $this->pkg[$pkg]['deps'] : false;
 	}
 
 }
