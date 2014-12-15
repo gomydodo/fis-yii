@@ -32,14 +32,14 @@ fis.config.merge({
                 release: '${webroot}/$&'
             },
             {
-                reg: /static\/js\/([^\.]+)([-|\.]min)?\.js/i,
+                reg: /static\/js\/lib\/([^\.]+)([-|\.]min)?\.js/i,
                 id: '$1',
                 isMod: true,
                 url: '/$&',
                 release: '${webroot}/$&'
             },
             {
-                reg: /static\/js\/(.+)([-|\.]min)?\.js/i,
+                reg: /static\/js\/(.+)\.js/i,
                 id: '$1',
                 isMod: true,
                 url: '/$&',
