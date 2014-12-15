@@ -32,6 +32,13 @@ fis.config.merge({
                 release: '${webroot}/$&'
             },
             {
+                reg: /static\/js\/([^\.]+)([-|\.]min)?\.js/i,
+                id: '$1',
+                isMod: true,
+                url: '/$&',
+                release: '${webroot}/$&'
+            },
+            {
                 reg: /static\/js\/(.+)([-|\.]min)?\.js/i,
                 id: '$1',
                 isMod: true,
@@ -59,8 +66,7 @@ fis.config.merge({
             {
                 reg: /.*\.php/i,
                 release: '$&',
-                useCache: false,
-                useMap : true
+                useCache: false
             },
             {
                 reg: /[^\/]+\/(.*)/,
