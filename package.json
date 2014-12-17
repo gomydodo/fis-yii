@@ -1,6 +1,6 @@
 {
   "name": "fisyii",
-  "version": "1.0.10",
+  "version": "1.0.11",
   "description": "A solustion of fis for yii.1.x",
   "main": "fis-yii.js",
   "scripts": {
