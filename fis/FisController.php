@@ -138,7 +138,7 @@ class FisLoader{
 		foreach($nodeColl as $id){
 			$type = $map->getType($id) ?: $map->getPkgType($id);
 			$uri = $map->getUri($id) ?: $map->getPkgUri($id);
-			if($type === 'js')
+			if($type === 'js' || $type === 'jpl')
 				$this->_m['resoureJs'][] = $uri;
 			if($type === 'css')
 				$this->_m['resoureCss'][] = $uri;
@@ -174,7 +174,8 @@ class FisLoader{
 				$depends[] = $id;
 				$nodeColl->add(new Node($id));
 
-				if(! isset($dps) && ($dps = $this->getMap()->getDepends($id)) !== false){
+				if(! isset($dps) && ($dps = $this->getMap()->getDepends($id)) !== false ||
+					($dps = $this->getMap()->getPkgDeps($id)) !== false){
 					foreach($dps as $dp){
 						array_push($_stack, $dp);
 						$nodeColl->add(new Node($dp), $id);
