@@ -75,7 +75,7 @@ fis.config.merge({
                 reg: /static\/jpl\/([^\.]+)\.jpl/,
                 release: '${webroot}${statics}/js/jpl/$1',
                 useHash: true,
-                useOptimizer: false,
+                useOptimizer: true,
                 isJsLike: true,
                 url: '${statics}/js/jpl/$1',
                 id: 'jpl/$1',
