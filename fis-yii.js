@@ -6,15 +6,23 @@ fis.cli.info = fis.util.readJSON(__dirname + "/package.json");
 fis.config.merge({
     webroot: "/public",
     statics: "/static",
+    project: {
+        fileType: {
+            text: 'css, jpl, php, js'
+        }
+    },
     modules: {
         parser: {
             sass: 'sass'
         },
         postprocessor: {
+            jpl: 'jswrapper',
             js: 'jswrapper, require-async',
             php: 'require-async'
         },
-        // postpackager: ['autoload', 'simple'],
+        preprocessor: {
+            jpl: 'jpl'
+        },
         lint : {
             js : 'jshint'
         }
@@ -32,7 +40,7 @@ fis.config.merge({
                 release: '${webroot}/$&'
             },
             {
-                reg: /static\/js\/lib\/([^\.]+)([-|\.]min)?\.js/i,
+                reg: /static\/js\/lib\/(.+)\.js/i,
                 id: '$1',
                 isMod: true,
                 url: '/$&',
@@ -64,6 +72,16 @@ fis.config.merge({
                 isMod: true
             },
             {
+                reg: /static\/jpl\/([^\.]+)\.jpl/,
+                release: '${webroot}${statics}/js/jpl/$1',
+                useHash: true,
+                useOptimizer: true,
+                isJsLike: true,
+                url: '${statics}/js/jpl/$1',
+                id: 'jpl/$1',
+                isMod: true
+            },
+            {
                 reg: /.*\.php/i,
                 release: '$&',
                 useCache: false
@@ -78,7 +96,8 @@ fis.config.merge({
     settings: {
         postprocessor: {
             jswrapper: {
-                type: 'amd'
+                type: 'amd',
+                wrapAll: true
             }
         },
         lint : {
