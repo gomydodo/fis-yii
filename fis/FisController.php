@@ -125,6 +125,7 @@ class FisLoader{
 	public function getDepends(){
 		$map = $this->getMap();
 		$needLoadScripts = array_merge($this->_m['js'], $this->_m['css']);
+
 		$nodeColl = $this->searchDepends($needLoadScripts);
 
 		//首先加载没有依赖的文件
@@ -135,18 +136,25 @@ class FisLoader{
 				$this->_m['resoureCss'][] = $uri;
 		}
 
-		foreach($nodeColl as $id){
+
+		$len = count($nodeColl);
+
+		for($i = $len - 1; $i >= 0; $i --){
+			$id = $nodeColl[$i];
+
 			$type = $map->getType($id) ?: $map->getPkgType($id);
 			$uri = $map->getUri($id) ?: $map->getPkgUri($id);
-			if($type === 'js' || $type === 'jpl')
+
+			if($type === 'js' || $type === 'jpl'){
 				$this->_m['resoureJs'][] = $uri;
+			}
 			if($type === 'css')
 				$this->_m['resoureCss'][] = $uri;
 		}
 	}
 
 	public function searchDepends($id){
-		$nodeColl = new NodeCollection();
+		$nodeColl = array();
 
 		$_stack = is_array($id) ? $id : array($id);
 		$depends = array();
@@ -155,34 +163,45 @@ class FisLoader{
 		while (! empty($_stack)){
 			$id = array_shift($_stack);
 			$oldId = $id;
-			$id = $map->hasId($id) ? $id : $map->getId($id); //处理时uri的情况
 
-			if($id === false){
+			$id = $map->getId($id) ?: $id; //$map->hasId($id) ? $id : ; //处理时uri的情况
+
+			if(! $map->hasId($id)){
 				$this->noDepends[] = $oldId;
 				continue;
 			}
 
-			if(! in_array($id, $depends)){
 
-				if(($pkg = $map->getPkg($id)) !== false){
-					$depends = $map->getPkgMembers($pkg) ? 
-							array_merge($depends, $map->getPkgMembers($pkg)) : $depends;
-					$dps = $map->getPkgDeps($pkg);
-					$id = $pkg;
-				}
-
-				$depends[] = $id;
-				$nodeColl->add(new Node($id));
-
-				if(! isset($dps) && ($dps = $this->getMap()->getDepends($id)) !== false ||
-					($dps = $this->getMap()->getPkgDeps($id)) !== false){
-					foreach($dps as $dp){
-						array_push($_stack, $dp);
-						$nodeColl->add(new Node($dp), $id);
-					}
-				}
+			if(in_array($id, $depends)){
+				continue;
 			}
+
+			//如果被包包含
+			if(($pkg = $map->getPkg($id)) !== false){
+				array_push($_stack, $pkg);
+				continue;
+			}
+
+
+			$nodeColl[] = $id;
+			$depends[] = $id;
+
+			//如果是包
+			if(($members = $map->getPkgMembers($id)) !== false){
+				$depends = array_merge($depends, $members);
+
+				//处理包的依赖
+				$_stack = array_merge($_stack, $map->getPkgDeps($id) ?: array());
+				continue;
+			}
+
+			//其他， 直接处理
+			if(($dps = $map->getDepends($id)) !== false){
+				$_stack = array_merge($_stack, $dps);
+			}
+			
 		}
+
 		return $nodeColl;
 	}
 
@@ -253,90 +272,6 @@ class FisLoader{
 	}
 }
 
-class Node{
-	public $id;
-	public $pre = null;
-	public $next = null;
-
-	public function __construct($id){
-		$this->id = $id;
-	}
-
-	public function insertBefore($node){
-		$node->pre = $this->pre;
-		if($node->pre !== null)
-			$this->pre->next = $node;
-		$this->pre = $node;
-		$node->next = $this;
-	}
-
-	public function insertAfter($node){
-		$node->next  = $this->next;
-		if($node->next !== null)
-			$this->next->pre = $node;
-		$this->next = $node;
-		$node->pre = $this;
-	}
-}
-
-class NodeCollection implements \Iterator{
-
-	private $iter;
-
-	public $head = null;
-	public $tail = null;
-
-	public $ids = array();
-	private $position = 0;
-
-	public function add($node, $overId=null){
-		if($this->head === null){
-			$this->head = $this->tail = $node;
-		}else{
-
-			if(isset($this->ids[$node->id])){
-				return;
-			}
-			if($overId === null){
-				$this->tail->insertAfter($node);
-				$this->tail = $node;
-			}else{
-				$overNode = $this->ids[$overId];
-				$overNode->insertBefore($node);
-				if($this->head == $overNode)
-					$this->head = $overNode->pre;
-			}
-		}
-
-		$this->ids[$node->id] = $node;
-	}
-
-
-
-	public function current(){
-		return $this->iter->id;
-	}
-
-	public function key(){
-		return $this->position;
-	}
-
-	public function next(){
-		$this->iter = $this->iter->next;
-		++$this->position;
-	}
-
-	public function rewind(){
-		$this->iter = $this->head;
-		$this->position = 0;
-	}
-
-	public function valid(){
-		return $this->iter !== null;
-	}
-
-}
-
 class Map{
 
 	private $pkg = array();
@@ -367,7 +302,7 @@ class Map{
 	}
 
 	public function hasId($id){
-		return isset($this->res[$id]);
+		return isset($this->res[$id]) || isset($this->pkg[$id]);
 	}
 
 	public function getDepends($id){
