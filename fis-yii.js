@@ -13,7 +13,7 @@ fis.config.merge({
     },
     modules: {
         parser: {
-            sass: 'sass'
+            scss: 'sass'
         },
         postprocessor: {
             jpl: 'jswrapper',
