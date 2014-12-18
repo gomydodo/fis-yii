@@ -14,7 +14,7 @@ class FisController extends \CController{
 
 	public function __construct($id, $module=null){
 		parent::__construct($id, $module);
-		$this->fisLoader = new FisLoader();
+		$this->fisLoader = new FisLoader($this);
 	}
 
 	public function render($view,$data=null,$return=false){
@@ -56,6 +56,7 @@ class FisLoader{
 		'css' => array(),
 		'js' => array(),
 	);
+
 	private $noDepends = array();
 	private $_m = array(
 		'css' => array(),
@@ -68,22 +69,79 @@ class FisLoader{
 
 	private $map;
 
+	public $controller;
+	public $cacheId = 'fis_depends_cache';
+
+	public $hasInlineJs = false;
+	public $hasInlineCss = false;
+	public $hasScriptTag = false;
+	public $hasCssTag = true;
+
+	public function __construct($controller){
+		$this->controller = $controller;
+	}
+
+
 	public function load($html){
 		if(($map = $this->getMap()) !== false){
-			$html = $this->resolveCss($html);			
-			$html = $this->resolveJs($html);
-			$html = $this->resolveInlineJs($html);
-			$html = $this->resolveInlineCss($html);
+			if($this->hasCssTag)
+				$html = $this->resolveCss($html);			
+			if($this->hasScriptTag)
+				$html = $this->resolveJs($html);
+			if($this->hasInlineJs)
+				$html = $this->resolveInlineJs($html);
+			if($this->hasInlineCss)
+				$html = $this->resolveInlineCss($html);
 
-			$this->getDepends();
+			if($this->isCacheTimeout()){
+				$this->getDepends();
 
-			$html = $this->addSyncCss($html);
-			$html = $this->addSyncJs($html);
+				$script = $this->createSyncJs();
+				$link = $this->createSyncCss();
+
+				$this->writeCache(array('js' => $script, 'css' => $link));
+			}else{
+				$data = $this->readCache();
+				$script = $data['js'];
+				$link = $data['css'];
+			}
+
+			$html = str_replace($this->head, $link, $html);
+			$html = str_replace($this->body, $script, $html);
 
 			return $html;	
 		}
 		else
 			return $html;
+	}
+
+	public function getCacheFile(){
+		$dir = \Yii::getPathOfAlias('application') . '/runtime/cache/';
+		if(! is_dir($dir))
+			mkdir($dir, 0766, true);
+		return  $dir . md5($this->controller->getId() . "_" . $this->controller->getAction()->getId() .
+			 			'_' . $this->cacheId) . '.cache';
+	}
+
+	public function writeCache($data){
+		$cacheFile = $this->getCacheFile();
+		if(is_writable(dirname($cacheFile))){
+			file_put_contents($cacheFile, serialize($data));
+		}
+	}
+
+	public function readCache(){
+		$cacheFile = $this->getCacheFile();
+		if(is_readable($cacheFile)){
+			return unserialize(file_get_contents($cacheFile));
+		}
+		return false;
+	}
+
+	public function isCacheTimeout(){
+		$mapFile = \Yii::getPathOfAlias('application') . '/map.json';
+		$cacheFile = $this->getCacheFile();
+		return !(file_exists($cacheFile) && filemtime($cacheFile) > filemtime($mapFile));
 	}
 
 	private function getMap(){
@@ -242,7 +300,7 @@ class FisLoader{
 		return preg_replace($pattern, '', $html);
 	}
 
-	public function addSyncJs($html){
+	public function createSyncJs(){
 		$script = '<script type="text/javascript" src="';
 		$script .= implode($this->_m['resoureJs'], '"></script><script type="text/javascript" src="');
 		$script .= '"></script>';
@@ -257,10 +315,10 @@ class FisLoader{
 		$script .= implode($this->_m['inlineJs'], "\n");
 		$script .= '</script>';
 		$script .= $this->body;
-		return str_replace($this->body, $script, $html);
+		return $script;
 	}
 
-	public function addSyncCss($html){
+	public function createSyncCss(){
 		$link = '<link rel="stylesheet" type="text/css" href="';
 		$link .= implode($this->_m['resoureCss'], '"><link rel="stylesheet" type="text/css" href="');
 		$link .= '">';
@@ -268,7 +326,7 @@ class FisLoader{
 		$link .= implode($this->_m['inlineCss'], "\n");
 		$link .= '</style>';
 		$link .= $this->head;
-		return str_replace($this->head, $link, $html);
+		return $link;
 	}
 }
 
