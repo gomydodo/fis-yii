@@ -14,8 +14,7 @@ fis.config.merge({
     modules: {
         parser: {
             scss: 'sass',
-            sass: 'sass',
-            js: 'require'
+            sass: 'sass'
         },
         postprocessor: {
             jpl: 'jswrapper',
