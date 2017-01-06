@@ -13,8 +13,8 @@ fis.config.merge({
     },
     modules: {
         parser: {
-            scss: 'sass',
-            sass: 'sass'
+            scss: 'node-sass',
+            sass: 'node-sass'
         },
         postprocessor: {
             jpl: 'jswrapper',
@@ -30,7 +30,8 @@ fis.config.merge({
     },
     roadmap: {
         ext: {
-            scss: 'css'
+            scss: 'css',
+            sass: 'css'
         },
         path: [
             {

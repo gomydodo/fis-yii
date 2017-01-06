@@ -23,7 +23,7 @@
   "dependencies": {
     "fis": "^1.8.6",
     "fis-lint-jshint": "0.0.9",
-    "fis-parser-sass": "^0.2.1",
+    "fis-parser-node-sass": "^1.0.1",
     "fis-postprocessor-amd": "^0.2.15",
     "fis-postprocessor-require-async": "0.0.8",
     "fis-preprocessor-jpl": "^0.0.1"
