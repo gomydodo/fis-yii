@@ -1,6 +1,6 @@
 {
   "name": "fisyii",
-  "version": "1.0.16",
+  "version": "1.0.32",
   "description": "A solustion of fis for yii.1.x",
   "main": "fis-yii.js",
   "scripts": {
@@ -26,6 +26,6 @@
     "fis-parser-node-sass": "^1.0.1",
     "fis-postprocessor-amd": "^0.2.15",
     "fis-postprocessor-require-async": "0.0.8",
-    "fis-preprocessor-jpl": "^0.0.1"
+    "fis-preprocessor-jpl": "^0.0.7"
   }
 }
